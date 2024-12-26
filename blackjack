@@ -1,0 +1,113 @@
+import random
+from typing import List, Tuple
+
+class Card:
+    def __init__(self, suit: str, value: str):
+        self.suit = suit
+        self.value = value
+    
+    def __str__(self):
+        return f"{self.value} of {self.suit}"
+
+class Deck:
+    def __init__(self):
+        suits = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
+        values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+        self.cards = [Card(suit, value) for suit in suits for value in values]
+        self.shuffle()
+    
+    def shuffle(self):
+        random.shuffle(self.cards)
+    
+    def deal(self) -> Card:
+        return self.cards.pop()
+
+class Hand:
+    def __init__(self):
+        self.cards: List[Card] = []
+    
+    def add_card(self, card: Card):
+        self.cards.append(card)
+    
+    def get_value(self) -> int:
+        value = 0
+        aces = 0
+        
+        for card in self.cards:
+            if card.value in ['J', 'Q', 'K']:
+                value += 10
+            elif card.value == 'A':
+                aces += 1
+            else:
+                value += int(card.value)
+        
+        # Handle aces
+        for _ in range(aces):
+            if value + 11 <= 21:
+                value += 11
+            else:
+                value += 1
+        
+        return value
+    
+    def __str__(self):
+        return ", ".join(str(card) for card in self.cards)
+
+def play_blackjack():
+    deck = Deck()
+    player_hand = Hand()
+    dealer_hand = Hand()
+    
+    # Initial deal
+    player_hand.add_card(deck.deal())
+    dealer_hand.add_card(deck.deal())
+    player_hand.add_card(deck.deal())
+    dealer_hand.add_card(deck.deal())
+    
+    # Show initial hands
+    print(f"\nDealer's visible card: {dealer_hand.cards[0]}")
+    print(f"Your hand: {player_hand} (Value: {player_hand.get_value()})")
+    
+    # Player's turn
+    while player_hand.get_value() < 21:
+        action = input("\nDo you want to hit or stand? (h/s): ").lower()
+        if action == 'h':
+            player_hand.add_card(deck.deal())
+            print(f"Your hand: {player_hand} (Value: {player_hand.get_value()})")
+        elif action == 's':
+            break
+    
+    # Check if player busted
+    if player_hand.get_value() > 21:
+        print(f"\nBust! Your hand: {player_hand} (Value: {player_hand.get_value()})")
+        print("Dealer wins!")
+        return
+    
+    # Dealer's turn
+    print(f"\nDealer's hand: {dealer_hand} (Value: {dealer_hand.get_value()})")
+    while dealer_hand.get_value() < 17:
+        dealer_hand.add_card(deck.deal())
+        print(f"Dealer hits: {dealer_hand} (Value: {dealer_hand.get_value()})")
+    
+    # Determine winner
+    player_value = player_hand.get_value()
+    dealer_value = dealer_hand.get_value()
+    
+    print(f"\nYour final hand: {player_hand} (Value: {player_value})")
+    print(f"Dealer's final hand: {dealer_hand} (Value: {dealer_value})")
+    
+    if dealer_value > 21:
+        print("Dealer busts! You win!")
+    elif player_value > dealer_value:
+        print("You win!")
+    elif dealer_value > player_value:
+        print("Dealer wins!")
+    else:
+        print("It's a tie!")
+
+if __name__ == "__main__":
+    while True:
+        play_blackjack()
+        play_again = input("\nWould you like to play again? (y/n): ").lower()
+        if play_again != 'y':
+            break
